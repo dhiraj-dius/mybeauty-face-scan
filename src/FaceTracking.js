@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { Face3D, SliderSide } from '@holition/face3d'
 import { downloadImage } from './downloadImage'
 
@@ -29,6 +29,8 @@ const FaceTracking = () => {
     completed: true,
     result: {}
   })
+
+  const canVisualiseResults = useMemo(() => Object.keys(faceScan.result).length !== 0, [faceScan])
 
   useEffect(() => {
     // Initialize Face3D when component mounts
@@ -123,6 +125,20 @@ const FaceTracking = () => {
     })
   }
 
+  const onVisualiseResults = async (event) => {
+    if (event.target.value === 'none') {
+      face3dRef.current.hideScanResults()
+    } else {
+      await face3dRef.current.visualiseScanResults({
+        type: event.target.value,
+        results: faceScan.result,
+        config: {
+          visualType: 'colours',
+        }
+      }) 
+    }
+  }
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
       <div style={{ display: 'flex', flexDirection: 'row', padding: '12px', gap: '16px' }}>
@@ -145,6 +161,13 @@ const FaceTracking = () => {
         >
           Face scan
         </button>
+        <select defaultValue="none" onChange={onVisualiseResults} disabled={!canVisualiseResults}>
+          <option value="none" selected>none</option>
+          <option value="spots">spots</option>
+          <option value="darkSpots">darkSpots</option>
+          <option value="wrinkles">wrinkles</option>
+          <option value="skinType">skinType</option>
+        </select>
       </div>
       <div 
         ref={containerRef}
